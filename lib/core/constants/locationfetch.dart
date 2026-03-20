@@ -6,7 +6,9 @@ import 'package:geocoding/geocoding.dart';
 
 import '../../features/auth/trainer_onboarding_screen.dart';
 
-const gold = Color(0xFFD5EB45);
+const primaryGreen = Color(0xFFC8DC32);
+const lightGreen = Color(0xFFC8DC32);
+const bgWhite = Color(0xFFF7F9FC);
 
 class LocationDetectScreen extends StatefulWidget {
   const LocationDetectScreen({super.key});
@@ -43,7 +45,6 @@ class _LocationDetectScreenState extends State<LocationDetectScreen>
     bool serviceEnabled;
     LocationPermission permission;
 
-    /// check GPS
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +53,6 @@ class _LocationDetectScreenState extends State<LocationDetectScreen>
       return;
     }
 
-    /// check permission
     permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
@@ -66,14 +66,12 @@ class _LocationDetectScreenState extends State<LocationDetectScreen>
       return;
     }
 
-    /// GET GPS POSITION
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
 
     latitude = position.latitude;
     longitude = position.longitude;
 
-    /// convert to address
     List<Placemark> placemarks =
     await placemarkFromCoordinates(latitude, longitude);
 
@@ -91,7 +89,6 @@ class _LocationDetectScreenState extends State<LocationDetectScreen>
 
     if (!mounted) return;
 
-    /// PASS ADDRESS + LATITUDE + LONGITUDE
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
@@ -117,133 +114,159 @@ class _LocationDetectScreenState extends State<LocationDetectScreen>
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: bgWhite,
+
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
 
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: const [
-                  Color(0xff0B0D12),
-                  Color(0xff141821),
-                  Color(0xff1C1F2A),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [
-                  0.0,
-                  _controller.value,
-                  1.0,
-                ],
+          return Stack(
+            children: [
+
+              /// 🌿 BACKGROUND
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFFF7F9FC),
+                      Color(0xFFE8F5E9),
+                      Color(0xFFD0F0E0),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
-            ),
 
-            child: SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
+              /// 🌿 GLOW
+              Positioned(
+                top: -80,
+                left: -60,
+                child: glowCircle(primaryGreen),
+              ),
 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
+              Positioned(
+                bottom: -100,
+                right: -60,
+                child: glowCircle(lightGreen),
+              ),
 
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 25,
-                        sigmaY: 25,
-                      ),
+              /// 🧊 CARD
+              SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
 
-                      child: Container(
-                        padding: const EdgeInsets.all(30),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
 
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                          ),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: 20,
+                          sigmaY: 20,
                         ),
 
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                        child: Container(
+                          padding: const EdgeInsets.all(30),
 
-                            Container(
-                              height: 120,
-                              width: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFD5EB45),
-                                    Color(0xFFB7D933),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+
+                              /// ICON
+                              Container(
+                                height: 120,
+                                width: 120,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const LinearGradient(
+                                    colors: [primaryGreen, lightGreen],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryGreen.withOpacity(0.4),
+                                      blurRadius: 30,
+                                    )
                                   ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: gold.withOpacity(0.6),
-                                    blurRadius: 40,
-                                    spreadRadius: 5,
-                                  )
+
+                                child: const Icon(
+                                  Icons.location_on,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
+                              ),
+
+                              const SizedBox(height: 30),
+
+                              const Text(
+                                "Detecting Your Location",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+
+                              const SizedBox(height: 15),
+
+                              isLoading
+                                  ? const CircularProgressIndicator(
+                                color: primaryGreen,
+                              )
+                                  : Column(
+                                children: [
+
+                                  Text(
+                                    address,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 15),
+
+                                  const Text(
+                                    "Location Confirmed ✓",
+                                    style: TextStyle(
+                                      color: primaryGreen,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ],
                               ),
-
-                              child: const Icon(
-                                Icons.location_on,
-                                size: 60,
-                                color: Colors.black,
-                              ),
-                            ),
-
-                            const SizedBox(height: 30),
-
-                            const Text(
-                              "Detecting Your Location",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-
-                            const SizedBox(height: 15),
-
-                            isLoading
-                                ? const CircularProgressIndicator(color: gold)
-                                : Column(
-                              children: [
-
-                                Text(
-                                  address,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 15),
-
-                                const Text(
-                                  "Location Confirmed ✓",
-                                  style: TextStyle(
-                                    color: gold,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  Widget glowCircle(Color color) {
+
+    return Container(
+      height: 220,
+      width: 220,
+
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(.2),
       ),
     );
   }

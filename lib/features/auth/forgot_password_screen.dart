@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../auth/otp_screen.dart';
 
-const gold = Color(0xFFD5EB45);
-const bg = Color(0xff0B0D12);
+const primaryGreen = Color(0xFFD5EB45);
+const lightGreen = Color(0xFFD5EB45);
+const bgWhite = Color(0xFFF7F9FC);
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -103,163 +104,140 @@ class _ForgotPasswordScreenState
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _bgController,
-        builder: (context, _) {
+      backgroundColor: bgWhite,
 
-          return Container(
-            decoration: BoxDecoration(
+      body: Stack(
+        children: [
+
+          /// 🌿 BACKGROUND
+          Container(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: const [
-                  Color(0xff0B0D12),
-                  Color(0xff141821),
-                  Color(0xff1C1F2A),
+                colors: [
+                  Color(0xFFF7F9FC),
+                  Color(0xFFE8F5E9),
+                  Color(0xFFD0F0E0),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                stops: [0.0, _bgController.value, 1.0],
               ),
             ),
+          ),
 
-            child: Stack(
-              children: [
+          /// 🌿 GLOW
+          Positioned(
+            top: -80,
+            left: -60,
+            child: glowCircle(primaryGreen),
+          ),
 
-                /// Glow circles
-                Positioned(
-                  top: -80,
-                  left: -60,
-                  child: glowCircle(gold),
-                ),
+          Positioned(
+            bottom: -100,
+            right: -60,
+            child: glowCircle(lightGreen),
+          ),
 
-                Positioned(
-                  bottom: -100,
-                  right: -60,
-                  child: glowCircle(const Color(0xFFD5EB45)),
-                ),
+          /// 🧊 CARD
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
 
-                /// MAIN CARD
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
 
-                    child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 20,
+                    sigmaY: 20,
+                  ),
+
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.85),
                       borderRadius: BorderRadius.circular(30),
+                    ),
 
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 25,
-                          sigmaY: 25,
-                        ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
 
-                        child: Container(
-                          padding: const EdgeInsets.all(30),
-
+                        /// ICON
+                        Container(
+                          height: 90,
+                          width: 90,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [primaryGreen, lightGreen],
                             ),
                           ),
-
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-
-                              /// ICON
-                              Container(
-                                height: 90,
-                                width: 90,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFD5EB45),
-                                      Color(0xFFB7D933),
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: gold.withOpacity(.6),
-                                      blurRadius: 30,
-                                      spreadRadius: 4,
-                                    )
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.lock_reset,
-                                  size: 40,
-                                  color: Colors.black,
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              const Text(
-                                "Forgot Password",
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              const Text(
-                                "Enter your email to receive OTP",
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                ),
-                              ),
-
-                              const SizedBox(height: 30),
-
-                              /// EMAIL FIELD
-                              TextField(
-                                controller: emailController,
-                                style: const TextStyle(
-                                    color: Colors.white),
-                                keyboardType:
-                                TextInputType.emailAddress,
-
-                                decoration: InputDecoration(
-                                  prefixIcon:
-                                  const Icon(Icons.email,
-                                      color: gold),
-
-                                  hintText: "Email Address",
-
-                                  hintStyle: const TextStyle(
-                                      color: Colors.white38),
-
-                                  filled: true,
-                                  fillColor:
-                                  Colors.black.withOpacity(.45),
-
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(18),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 25),
-
-                              /// SEND OTP BUTTON
-                              glowingButton(),
-                            ],
+                          child: const Icon(
+                            Icons.lock_reset,
+                            size: 40,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
+
+                        const SizedBox(height: 20),
+
+                        const Text(
+                          "Forgot Password",
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        const Text(
+                          "Enter your email to receive OTP",
+                          style: TextStyle(
+                            color: Colors.black54,
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        /// EMAIL FIELD
+                        TextField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(
+                              Icons.email,
+                              color: primaryGreen,
+                            ),
+
+                            hintText: "Email Address",
+
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+
+                            border: OutlineInputBorder(
+                              borderRadius:
+                              BorderRadius.circular(18),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 25),
+
+                        /// BUTTON
+                        glowingButton(),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -272,21 +250,9 @@ class _ForgotPasswordScreenState
 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFFD5EB45),
-            Color(0xFFB7D933),
-          ],
+          colors: [primaryGreen, lightGreen],
         ),
-
-        boxShadow: [
-          BoxShadow(
-            color: gold.withOpacity(.6),
-            blurRadius: 25,
-            spreadRadius: 1,
-          )
-        ],
       ),
 
       child: ElevatedButton(
@@ -298,15 +264,12 @@ class _ForgotPasswordScreenState
         onPressed: loading ? null : sendReset,
 
         child: loading
-            ? const CircularProgressIndicator(
-          color: Colors.black,
-        )
+            ? const CircularProgressIndicator(color: Colors.white)
             : const Text(
           "Send OTP",
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
           ),
         ),
       ),
@@ -314,14 +277,12 @@ class _ForgotPasswordScreenState
   }
 
   Widget glowCircle(Color color) {
-
     return Container(
       height: 220,
       width: 220,
-
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(.25),
+        color: color.withOpacity(.2),
       ),
     );
   }

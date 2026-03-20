@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-const gold = Color(0xFFD5EB45);
+const primaryGreen = Color(0xFFC8DC32);
+const accentGreen = Color(0xFFC8DC32);
 
 class VideoPlayerScreen extends StatefulWidget {
   final String url;
@@ -36,46 +38,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
   }
 
-  /// Auto hide controls
   void startHideTimer() {
     hideTimer?.cancel();
 
     hideTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() {
-          showControls = false;
-        });
-      }
+      if (mounted) setState(() => showControls = false);
     });
   }
 
   void toggleControls() {
-    setState(() {
-      showControls = !showControls;
-    });
-
+    setState(() => showControls = !showControls);
     if (showControls) startHideTimer();
   }
 
   void playPause() {
-
-    setState(() {
-      controller.value.isPlaying
-          ? controller.pause()
-          : controller.play();
-    });
-
+    controller.value.isPlaying ? controller.pause() : controller.play();
+    setState(() {});
     startHideTimer();
   }
 
   void forward() {
-    final pos = controller.value.position;
-    controller.seekTo(pos + const Duration(seconds: 10));
+    controller.seekTo(
+        controller.value.position + const Duration(seconds: 10));
   }
 
   void rewind() {
-    final pos = controller.value.position;
-    controller.seekTo(pos - const Duration(seconds: 10));
+    controller.seekTo(
+        controller.value.position - const Duration(seconds: 10));
   }
 
   @override
@@ -98,16 +87,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 aspectRatio: controller.value.aspectRatio,
                 child: VideoPlayer(controller),
               )
-                  : const CircularProgressIndicator(color: gold),
+                  : const CircularProgressIndicator(color: primaryGreen),
             ),
 
-            /// BUFFER LOADING
+            /// LOADER
             if (controller.value.isBuffering)
-              const Center(
-                child: CircularProgressIndicator(color: gold),
-              ),
+              const CircularProgressIndicator(color: primaryGreen),
 
-            /// CONTROLS
+            /// OVERLAY
             AnimatedOpacity(
               opacity: showControls ? 1 : 0,
               duration: const Duration(milliseconds: 300),
@@ -127,71 +114,99 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               ),
             ),
 
-            /// CONTROL LAYOUT
+            /// CONTROLS UI
             if (showControls)
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
 
-                  /// TOP BAR
+                  /// 🔝 TOP BAR (GLASS)
                   SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        children: [
+                      padding: const EdgeInsets.all(12),
 
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back,
-                                color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+
+                            child: Row(
+                              children: [
+
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back,
+                                      color: Colors.white),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+
+                                const Spacer(),
+
+                                const Text(
+                                  "Workout Video",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const Spacer(),
+                              ],
+                            ),
                           ),
-
-                          const Spacer(),
-
-                          const Text(
-                            "Workout Video",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
-                          ),
-
-                          const Spacer(),
-                        ],
+                        ),
                       ),
                     ),
                   ),
 
-                  /// CENTER CONTROLS
+                  /// 🎯 CENTER CONTROLS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
 
                       IconButton(
                         icon: const Icon(Icons.replay_10,
-                            color: Colors.white, size: 40),
+                            color: Colors.white, size: 36),
                         onPressed: rewind,
                       ),
 
                       const SizedBox(width: 20),
 
+                      /// 🔥 PLAY BUTTON
                       GestureDetector(
                         onTap: playPause,
 
                         child: Container(
-                          padding: const EdgeInsets.all(18),
+                          padding: const EdgeInsets.all(22),
 
-                          decoration: const BoxDecoration(
-                            color: gold,
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [primaryGreen, accentGreen],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: primaryGreen.withOpacity(0.6),
+                                blurRadius: 25,
+                              )
+                            ],
                           ),
 
                           child: Icon(
                             controller.value.isPlaying
                                 ? Icons.pause
                                 : Icons.play_arrow,
-                            size: 36,
-                            color: Colors.black,
+                            size: 40,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -200,27 +215,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
                       IconButton(
                         icon: const Icon(Icons.forward_10,
-                            color: Colors.white, size: 40),
+                            color: Colors.white, size: 36),
                         onPressed: forward,
                       ),
                     ],
                   ),
 
-                  /// PROGRESS BAR
+                  /// ⏱ PROGRESS BAR
                   Padding(
                     padding: const EdgeInsets.all(16),
 
                     child: Column(
                       children: [
 
-                        VideoProgressIndicator(
-                          controller,
-                          allowScrubbing: true,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
 
-                          colors: const VideoProgressColors(
-                            playedColor: gold,
-                            bufferedColor: Colors.white38,
-                            backgroundColor: Colors.white24,
+                          child: VideoProgressIndicator(
+                            controller,
+                            allowScrubbing: true,
+
+                            colors: const VideoProgressColors(
+                              playedColor: primaryGreen,
+                              bufferedColor: Colors.white38,
+                              backgroundColor: Colors.white24,
+                            ),
                           ),
                         ),
 
@@ -229,18 +248,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         Row(
                           mainAxisAlignment:
                           MainAxisAlignment.spaceBetween,
+
                           children: [
 
                             Text(
                               formatDuration(controller.value.position),
-                              style:
-                              const TextStyle(color: Colors.white70),
+                              style: const TextStyle(
+                                  color: Colors.white70),
                             ),
 
                             Text(
                               formatDuration(controller.value.duration),
-                              style:
-                              const TextStyle(color: Colors.white70),
+                              style: const TextStyle(
+                                  color: Colors.white70),
                             ),
                           ],
                         )
@@ -256,12 +276,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   String formatDuration(Duration d) {
-
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-
     final minutes = twoDigits(d.inMinutes.remainder(60));
     final seconds = twoDigits(d.inSeconds.remainder(60));
-
     return "$minutes:$seconds";
   }
 

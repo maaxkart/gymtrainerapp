@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../gymregistration/register.dart';
 
-const gold = Color(0xFFD5EB45);
-const bg = Color(0xff0B0D12);
-const card = Color(0xff12141A);
+const primaryGreen = Color(0xFFD5EB45);
+const lightGreen = Color(0xFFD5EB45);
+const bgWhite = Color(0xFFF7F9FC);
 
 class TrainerOnboardingScreen extends StatefulWidget {
 
@@ -32,26 +32,18 @@ class _TrainerOnboardingScreenState
 
   int page = 0;
 
-  /// facilities from API
   List<Map<String, dynamic>> facilities = [];
-
   bool loading = true;
 
-  /// store facility IDs
   List<int> selectedFacilities = [];
 
-  /// facility images
   final Map<String, String> facilityImages = {
-
     "Personal Training":
     "https://images.unsplash.com/photo-1550345332-09e3ac987658",
-
     "Yoga & Pilates":
     "https://images.unsplash.com/photo-1599447421416-3414500d18a5",
-
     "Cardio & Strength":
     "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61",
-
     "Wellness & Recovery":
     "https://images.unsplash.com/photo-1599058917765-a780eda07a3e",
   };
@@ -62,11 +54,8 @@ class _TrainerOnboardingScreenState
     loadFacilities();
   }
 
-  /// LOAD FACILITIES FROM API
   Future<void> loadFacilities() async {
-
     try {
-
       final data = await ApiService.getFacilities();
 
       setState(() {
@@ -75,28 +64,20 @@ class _TrainerOnboardingScreenState
       });
 
     } catch (e) {
-
-      debugPrint("Facility API Error: $e");
-
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
     }
   }
 
-  /// NEXT PAGE
   void nextPage() {
 
     if (page == facilities.length - 1) {
 
       if (selectedFacilities.isEmpty) {
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Please select at least one facility"),
           ),
         );
-
         return;
       }
 
@@ -125,22 +106,19 @@ class _TrainerOnboardingScreenState
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: bgWhite,
       bottomNavigationBar: _bottomButton(),
 
       body: loading
           ? const Center(
-          child: CircularProgressIndicator(color: gold))
-
+        child: CircularProgressIndicator(color: primaryGreen),
+      )
           : Stack(
         children: [
 
-          /// PAGE VIEW
           PageView(
             controller: _controller,
-            onPageChanged: (i) {
-              setState(() => page = i);
-            },
+            onPageChanged: (i) => setState(() => page = i),
 
             children: facilities.map((facility) {
 
@@ -169,16 +147,16 @@ class _TrainerOnboardingScreenState
               children: List.generate(
                 facilities.length,
                     (i) => AnimatedContainer(
-                  duration:
-                  const Duration(milliseconds: 300),
-
+                  duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
 
                   height: 6,
                   width: page == i ? 28 : 10,
 
                   decoration: BoxDecoration(
-                    color: page == i ? gold : Colors.white24,
+                    color: page == i
+                        ? primaryGreen
+                        : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -190,7 +168,6 @@ class _TrainerOnboardingScreenState
     );
   }
 
-  /// PAGE UI
   Widget _buildPage({
     required String image,
     required String title,
@@ -206,13 +183,14 @@ class _TrainerOnboardingScreenState
 
         Image.network(image, fit: BoxFit.cover),
 
+        /// 🌿 LIGHT OVERLAY (instead of dark)
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.black.withOpacity(0.85),
-                Colors.black.withOpacity(0.6),
-                Colors.black.withOpacity(0.9),
+                Colors.white.withOpacity(0.7),
+                Colors.white.withOpacity(0.4),
+                Colors.white.withOpacity(0.8),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -224,27 +202,21 @@ class _TrainerOnboardingScreenState
           child: Column(
             children: [
 
-              /// SKIP
-
-
               const Spacer(),
 
-              /// CARD
+              /// 🧊 CARD
               Container(
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(24),
 
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(28),
-                  color: card.withOpacity(0.9),
-
-                  border: Border.all(color: Colors.white10),
+                  color: Colors.white.withOpacity(0.9),
 
                   boxShadow: [
                     BoxShadow(
-                      color: gold.withOpacity(0.15),
-                      blurRadius: 30,
-                      spreadRadius: -10,
+                      color: primaryGreen.withOpacity(0.15),
+                      blurRadius: 25,
                     )
                   ],
                 ),
@@ -258,20 +230,19 @@ class _TrainerOnboardingScreenState
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
 
                     const SizedBox(height: 30),
 
-                    /// SELECT BUTTON
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                        isSelected ? gold : card,
+                        isSelected ? primaryGreen : Colors.grey.shade200,
 
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 14),
+                            horizontal: 30, vertical: 14),
 
                         shape: RoundedRectangleBorder(
                           borderRadius:
@@ -299,8 +270,8 @@ class _TrainerOnboardingScreenState
 
                         style: TextStyle(
                           color: isSelected
-                              ? Colors.black
-                              : Colors.white,
+                              ? Colors.white
+                              : Colors.black87,
                         ),
                       ),
                     )
@@ -314,34 +285,37 @@ class _TrainerOnboardingScreenState
     );
   }
 
-  /// BOTTOM BUTTON
   Widget _bottomButton() {
 
     return Padding(
       padding: const EdgeInsets.all(16),
 
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: gold,
-
-          padding:
-          const EdgeInsets.symmetric(vertical: 16),
-
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: const LinearGradient(
+            colors: [primaryGreen, lightGreen],
           ),
         ),
 
-        onPressed: nextPage,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
 
-        child: Text(
-          page == facilities.length - 1
-              ? "Finish"
-              : "Continue",
+          onPressed: nextPage,
 
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
+          child: Text(
+            page == facilities.length - 1
+                ? "Finish"
+                : "Continue",
+
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../core/constants/app_colors.dart';
 import '../features/auth/login_screen.dart';
+
+const primaryGreen = Color(0xFFC8DC32);
+const lightGreen = Color(0xFFC8DC32);
+const bgWhite = Color(0xFFF7F9FC);
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,76 +55,124 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Center(
-        child: FadeTransition(
-          opacity: fadeAnimation,
-          child: ScaleTransition(
-            scale: scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+      backgroundColor: bgWhite,
 
-                /// glowing circle
-                Container(
-                  padding: const EdgeInsets.all(25),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.card,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withOpacity(0.8),
-                        blurRadius: 40,
-                        spreadRadius: 10,
-                      )
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.fitness_center,
-                    size: 80,
-                    color: AppColors.secondary,
-                  ),
-                ),
+      body: Stack(
+        children: [
 
-                const SizedBox(height: 30),
-
-                /// App Name
-                Text(
-                  "POWER GYM",
-                  style: TextStyle(
-                    color: AppColors.secondary,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 3,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Text(
-                  "Train Hard. Stay Strong.",
-                  style: TextStyle(
-                    color: AppColors.subText,
-                    fontSize: 14,
-                    letterSpacing: 1,
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                /// loading indicator
-                SizedBox(
-                  width: 120,
-                  child: LinearProgressIndicator(
-                    color: AppColors.secondary,
-                    backgroundColor: AppColors.border,
-                  ),
-                ),
-              ],
+          /// 🌿 BACKGROUND GRADIENT
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFF7F9FC),
+                  Color(0xFFE8F5E9),
+                  Color(0xFFD0F0E0),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
           ),
-        ),
+
+          /// 🌿 GLOW EFFECTS
+          Positioned(
+            top: -80,
+            left: -60,
+            child: glowCircle(primaryGreen),
+          ),
+
+          Positioned(
+            bottom: -100,
+            right: -60,
+            child: glowCircle(lightGreen),
+          ),
+
+          /// CONTENT
+          Center(
+            child: FadeTransition(
+              opacity: fadeAnimation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    /// LOGO
+                    Container(
+                      padding: const EdgeInsets.all(25),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [primaryGreen, lightGreen],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryGreen.withOpacity(0.4),
+                            blurRadius: 30,
+                          )
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.fitness_center,
+                        size: 70,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    /// APP NAME
+                    const Text(
+                      "POWER GYM",
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    const Text(
+                      "Train Hard. Stay Strong.",
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 14,
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    /// LOADER
+                    SizedBox(
+                      width: 140,
+                      child: LinearProgressIndicator(
+                        color: primaryGreen,
+                        backgroundColor: Colors.grey.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget glowCircle(Color color) {
+
+    return Container(
+      height: 220,
+      width: 220,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(.2),
       ),
     );
   }

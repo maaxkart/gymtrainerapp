@@ -1,32 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
-  static ThemeData dark = ThemeData(
+
+  static ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+    scaffoldBackgroundColor: AppColors.lightBg,
+
+    cardColor: AppColors.lightCard,
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      iconTheme: IconThemeData(color: Colors.black),
+    ),
+
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: AppColors.lightText),
+    ),
+  );
+
+  static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    useMaterial3: true,
-    scaffoldBackgroundColor: AppColors.bg,
+    scaffoldBackgroundColor: AppColors.darkBg,
 
-    colorScheme: ColorScheme.dark(
-      primary: AppColors.primary,
-      secondary: AppColors.secondary,
+    cardColor: AppColors.darkCard,
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.darkBg,
+      elevation: 0,
     ),
 
-    textTheme: GoogleFonts.poppinsTextTheme().apply(
-      bodyColor: AppColors.text,
-      displayColor: AppColors.text,
-    ),
-
-    cardColor: AppColors.card,
-
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: AppColors.card,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.border),
-      ),
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: AppColors.darkText),
     ),
   );
 }

@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'forgot_password_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
-import '../gymregistration/register.dart';
 import '../../core/constants/locationfetch.dart';
 
-const gold = Color(0xFFD5EB45);
-
-const bg = Color(0xff0B0D12);
+const primaryGreen = Color(0xFFD5EB45);
+const lightGreen = Color(0xFFD5EB45);
+const bgWhite = Color(0xFFF7F9FC);
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,13 +48,11 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> login() async {
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
 
     try {
-
       final response = await ApiService.login(
         emailController.text.trim(),
         passwordController.text.trim(),
@@ -64,16 +61,13 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => isLoading = false);
 
       if (response["status"] == "success") {
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => const MainNavigationScreen(),
           ),
         );
-
       } else {
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response["message"] ?? "Login failed"),
@@ -81,9 +75,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         );
       }
-
     } catch (e) {
-
       setState(() => isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,237 +89,225 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
+      backgroundColor: bgWhite,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
 
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: const [
-                  Color(0xff0B0D12),
-                  Color(0xff141821),
-                  Color(0xff1C1F2A),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0.0, _controller.value, 1.0],
+          return Stack(
+            children: [
+
+              /// 🌿 BACKGROUND GRADIENT
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFFF7F9FC),
+                      Color(0xFFE8F5E9),
+                      Color(0xFFD0F0E0),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
-            ),
 
-            child: Stack(
-              children: [
+              /// 🌿 SOFT GLOW
+              Positioned(
+                top: -80,
+                left: -60,
+                child: glowCircle(primaryGreen),
+              ),
 
-                /// Glow Effects
-                Positioned(
-                  top: -80,
-                  left: -60,
-                  child: glowCircle(gold),
-                ),
+              Positioned(
+                bottom: -100,
+                right: -60,
+                child: glowCircle(lightGreen),
+              ),
 
-                Positioned(
-                  bottom: -100,
-                  right: -60,
-                  child: glowCircle(const Color(0xFFD5EB45)),
-                ),
+              /// 🧊 LOGIN CARD
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
 
-                /// LOGIN CARD
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
 
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
 
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 25,
-                          sigmaY: 25,
+                      child: Container(
+                        padding: const EdgeInsets.all(30),
+
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                          ),
                         ),
 
-                        child: Container(
-                          padding: const EdgeInsets.all(30),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
 
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
-                          ),
-
-                          child: Form(
-                            key: _formKey,
-
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-
-                                /// APP LOGO
-                                Container(
-                                  height: 90,
-                                  width: 90,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFFD5EB45),
-                                        Color(0xFFB7D933),
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: gold.withOpacity(.6),
-                                        blurRadius: 30,
-                                        spreadRadius: 4,
-                                      )
+                              /// 🟢 LOGO
+                              Container(
+                                height: 90,
+                                width: 90,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      primaryGreen,
+                                      lightGreen,
                                     ],
                                   ),
-                                  child: const Icon(
-                                    Icons.fitness_center,
-                                    size: 40,
-                                    color: Colors.black,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryGreen.withOpacity(.4),
+                                      blurRadius: 25,
+                                    )
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.fitness_center,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              const Text(
+                                "Trainer Login",
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+
+                              const SizedBox(height: 30),
+
+                              /// EMAIL
+                              textField(
+                                controller: emailController,
+                                hint: "Email Address",
+                                icon: Icons.email,
+
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              /// PASSWORD
+                              TextFormField(
+                                controller: passwordController,
+                                obscureText: obscurePassword,
+                                validator: (v) =>
+                                v!.isEmpty ? "Password required" : null,
+
+                                decoration: InputDecoration(
+                                  prefixIcon: const Icon(Icons.lock,
+                                      color: primaryGreen),
+
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      obscurePassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                      color: primaryGreen,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        obscurePassword = !obscurePassword;
+                                      });
+                                    },
+                                  ),
+
+                                  hintText: "Password",
+
+                                  filled: true,
+                                  fillColor: Colors.grey.shade100,
+
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(18),
+                                    borderSide: BorderSide.none,
                                   ),
                                 ),
+                              ),
 
-                                const SizedBox(height: 20),
+                              const SizedBox(height: 15),
 
-                                const Text(
-                                  "Trainer Login",
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 30),
-
-                                /// EMAIL FIELD
-                                textField(
-                                  controller: emailController,
-                                  hint: "Email Address",
-                                  icon: Icons.email,
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                /// PASSWORD
-                                TextFormField(
-                                  controller: passwordController,
-                                  obscureText: obscurePassword,
-                                  style: const TextStyle(color: Colors.white),
-                                  validator: (v) =>
-                                  v!.isEmpty ? "Password required" : null,
-
-                                  decoration: InputDecoration(
-                                    prefixIcon: const Icon(
-                                        Icons.lock,
-                                        color: gold),
-
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        obscurePassword
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                        color: gold,
+                              /// FORGOT
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                        const ForgotPasswordScreen(),
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          obscurePassword = !obscurePassword;
-                                        });
-                                      },
-                                    ),
-
-                                    hintText: "Password",
-                                    hintStyle:
-                                    const TextStyle(color: Colors.white38),
-
-                                    filled: true,
-                                    fillColor:
-                                    Colors.black.withOpacity(0.45),
-
-                                    border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(18),
-                                      borderSide: BorderSide.none,
-                                    ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Forgot Password?",
+                                    style: TextStyle(color: primaryGreen),
                                   ),
                                 ),
+                              ),
 
-                                const SizedBox(height: 15),
+                              const SizedBox(height: 20),
 
-                                /// FORGOT
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
+                              /// BUTTON
+                              glowingButton(),
+
+                              const SizedBox(height: 15),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+
+                                  const Text(
+                                    "Don't have an account?",
+                                    style: TextStyle(color: Colors.black54),
+                                  ),
+
+                                  TextButton(
                                     onPressed: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) =>
-                                          const ForgotPasswordScreen(),
+                                          const LocationDetectScreen(),
                                         ),
                                       );
                                     },
                                     child: const Text(
-                                      "Forgot Password?",
-                                      style: TextStyle(color: gold),
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                /// LOGIN BUTTON
-                                glowingButton(),
-
-                                const SizedBox(height: 15),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-
-                                    const Text(
-                                      "Don't have an account?",
-                                      style: TextStyle(color: Colors.white70),
-                                    ),
-
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => const LocationDetectScreen(
-
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text(
-                                        "Register",
-                                        style: TextStyle(
-                                          color: gold,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      "Register",
+                                      style: TextStyle(
+                                        color: primaryGreen,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  ],
-                                ),
-
-
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -339,22 +319,16 @@ class _LoginScreenState extends State<LoginScreen>
     required String hint,
     required IconData icon,
   }) {
-
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
-
       validator: (v) =>
       v!.isEmpty ? "Field required" : null,
 
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: gold),
+        prefixIcon: Icon(icon, color: primaryGreen),
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38),
-
         filled: true,
-        fillColor: Colors.black.withOpacity(.45),
-
+        fillColor: Colors.grey.shade100,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
@@ -364,28 +338,18 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget glowingButton() {
-
     return Container(
       width: double.infinity,
       height: 55,
 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-
         gradient: const LinearGradient(
           colors: [
-            Color(0xFFD5EB45),
-            Color(0xFFB7D933),
+            primaryGreen,
+            lightGreen,
           ],
         ),
-
-        boxShadow: [
-          BoxShadow(
-            color: gold.withOpacity(.6),
-            blurRadius: 25,
-            spreadRadius: 1,
-          )
-        ],
       ),
 
       child: ElevatedButton(
@@ -393,19 +357,14 @@ class _LoginScreenState extends State<LoginScreen>
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
-
         onPressed: isLoading ? null : login,
-
         child: isLoading
-            ? const CircularProgressIndicator(
-          color: Colors.black,
-        )
+            ? const CircularProgressIndicator(color: Colors.white)
             : const Text(
           "Login",
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
           ),
         ),
       ),
@@ -413,14 +372,12 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget glowCircle(Color color) {
-
     return Container(
       height: 220,
       width: 220,
-
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(.25),
+        color: color.withOpacity(.2),
       ),
     );
   }

@@ -1,143 +1,229 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../dashboard/home_page.dart';
 import '../attendance/qr_screen.dart';
 import '../profile/trainer_profile_screen.dart';
 import '../attendance/attendance_screen.dart';
 
-const gold = Color(0xFFD5EB45);
-const bg = Color(0xff0B0D12);
-const card = Color(0xff12141A);
+// ── Brand tokens ──────────────────────────────────────
+const kGold      = Color(0xFFC8DC32);
+const kGoldDark  = Color(0xFF8FA000);
+const kGoldDeep  = Color(0xFF3A4500);
+const kGoldLight = Color(0xFFF5F8D6);
+const kBg        = Color(0xFFF7F7F5);
+const kSurface   = Color(0xFFFFFFFF);
+const kBorder    = Color(0xFFEFEFEF);
+const kText1     = Color(0xFF111111);
+const kText2     = Color(0xFFCCCCCC);
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State createState() =>
+  State<MainNavigationScreen> createState() =>
       _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState
-    extends State {
+    extends State<MainNavigationScreen>
+    with SingleTickerProviderStateMixin {
 
-  int currentIndex = 0;
+  int _currentIndex = 0;
 
-  final screens = const [
-    HomePage(), // index 0
-    AttendanceScreen(), // index 1
-    QrScreen(), // index 2
-    TrainerProfileScreen(), // index 3
+  // Tab labels for accessibility
+  static const _labels = ["Home", "Attendance", "QR Scan", "Profile"];
+
+  final _screens = const [
+    HomePage(),
+    AttendanceScreen(),
+    QrScreen(),
+    TrainerProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bg,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: kBg,
+        extendBody: true,
 
-      /// PAGE VIEW
-      body: IndexedStack(
-        index: currentIndex,
-        children: screens,
-      ),
-
-      /// BOTTOM NAV
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: card,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: gold.withOpacity(0.15),
-                blurRadius: 25,
-              )
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-
-              /// HOME
-              _navItem(Icons.home_rounded, 0),
-
-              /// ATTENDANCE
-              _navItem(Icons.fact_check_rounded, 1),
-
-              /// SCAN BUTTON
-              _scanButton(),
-
-              /// PROFILE
-              _navItem(Icons.person_rounded, 3),
-            ],
-          ),
+        // ── Page body ─────────────────────────────────
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
         ),
+
+        // ── Bottom nav bar ────────────────────────────
+        bottomNavigationBar: _buildNavBar(),
       ),
     );
-
   }
 
-  /// NAV ITEM
-  Widget _navItem(IconData icon, int index) {
-
-    final isActive = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () => setState(() => currentIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.all(10),
+  Widget _buildNavBar() {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive
-              ? gold.withOpacity(0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Icon(
-          icon,
-          size: 26,
-          color: isActive ? gold : Colors.white54,
-        ),
-      ),
-    );
-
-  }
-
-  /// SCAN BUTTON
-  Widget _scanButton() {
-
-    final isActive = currentIndex == 2;
-
-    return GestureDetector(
-      onTap: () => setState(() => currentIndex = 2),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: isActive
-              ? const LinearGradient(
-            colors: [gold, Color(0xFFD5EB45)],
-          )
-              : null,
-          color: isActive ? null : card,
+          color: kSurface,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: kBorder),
           boxShadow: [
             BoxShadow(
-              color: isActive
-                  ? gold.withOpacity(0.6)
-                  : Colors.transparent,
-              blurRadius: isActive ? 30 : 0,
-            )
+              color: Colors.black.withOpacity(.08),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
           ],
         ),
-        child: Icon(
-          Icons.qr_code_scanner,
-          color: isActive ? Colors.black : Colors.white54,
-          size: 28,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(
+              icon:        Icons.home_rounded,
+              label:       _labels[0],
+              index:       0,
+              activeIndex: _currentIndex,
+              onTap: () => _setIndex(0),
+            ),
+            _NavItem(
+              icon:        Icons.fact_check_rounded,
+              label:       _labels[1],
+              index:       1,
+              activeIndex: _currentIndex,
+              onTap: () => _setIndex(1),
+            ),
+
+            // Center QR scan button
+            _ScanButton(
+              isActive: _currentIndex == 2,
+              onTap:    () => _setIndex(2),
+            ),
+
+            _NavItem(
+              icon:        Icons.person_rounded,
+              label:       _labels[3],
+              index:       3,
+              activeIndex: _currentIndex,
+              onTap: () => _setIndex(3),
+            ),
+          ],
         ),
       ),
     );
+  }
 
+  void _setIndex(int i) {
+    if (_currentIndex == i) return;
+    HapticFeedback.lightImpact();
+    setState(() => _currentIndex = i);
   }
 }
+
+// ── NAV ITEM ──────────────────────────────────────────────────
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String   label;
+  final int      index;
+  final int      activeIndex;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.index,
+    required this.activeIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = activeIndex == index;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve:    Curves.easeOutCubic,
+        padding:  const EdgeInsets.symmetric(
+            horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color:        isActive ? kGoldLight : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: isActive
+        // Active: icon + label side by side
+            ? Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: kGoldDark),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color:      kGoldDark,
+                fontSize:   12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        )
+        // Inactive: icon only
+            : Icon(icon, size: 22, color: kText2),
+      ),
+    );
+  }
+}
+
+// ── SCAN BUTTON ───────────────────────────────────────────────
+class _ScanButton extends StatelessWidget {
+  final bool         isActive;
+  final VoidCallback onTap;
+
+  const _ScanButton({
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve:    Curves.easeOutCubic,
+        width:    56,
+        height:   56,
+        decoration: BoxDecoration(
+          color:        isActive ? kGold : kGoldLight,
+          borderRadius: BorderRadius.circular(20),
+          border:       Border.all(
+            color: isActive ? kGold : kGoldBorder,
+            width: isActive ? 0   : 1.5,
+          ),
+          boxShadow: isActive
+              ? [
+            BoxShadow(
+              color:     kGold.withOpacity(.4),
+              blurRadius: 16,
+              offset:    const Offset(0, 6),
+            ),
+          ]
+              : [],
+        ),
+        child: Icon(
+          Icons.qr_code_scanner_rounded,
+          color: isActive ? kGoldDeep : kGoldDark,
+          size:  26,
+        ),
+      ),
+    );
+  }
+}
+
+// ── helper constant exposed for use in _ScanButton ────────────
+const kGoldBorder = Color(0xFFE2EC8A);

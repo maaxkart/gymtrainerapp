@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/dashboard/main_navigation_screen.dart';
 import 'core/constants/locationfetch.dart';
@@ -19,7 +19,7 @@ class TrainerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.darkTheme,
       home: const AuthCheckScreen(),
     );
   }
