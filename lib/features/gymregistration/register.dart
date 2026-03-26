@@ -142,7 +142,7 @@ class _GymRegistrationScreenState
       body: Stack(
         children: [
 
-          /// 🌿 BACKGROUND
+          /// BACKGROUND
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -157,7 +157,7 @@ class _GymRegistrationScreenState
             ),
           ),
 
-          /// 🧊 FORM
+          /// FORM
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -204,7 +204,10 @@ class _GymRegistrationScreenState
 
                             child: gymImage == null
                                 ? const Center(
-                              child: Text("Upload Gym Photo"),
+                              child: Text(
+                                "Upload Gym Photo",
+                                style: TextStyle(color: Colors.black54),
+                              ),
                             )
                                 : null,
                           ),
@@ -285,6 +288,7 @@ class _GymRegistrationScreenState
     );
   }
 
+  /// TEXT FIELD
   Widget buildField(
       String hint,
       IconData icon,
@@ -295,26 +299,42 @@ class _GymRegistrationScreenState
     return TextFormField(
       controller: controller,
       keyboardType: type,
+
+      style: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w500,
+      ),
+
       validator: (value) => value!.isEmpty ? "Required Field" : null,
 
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: primaryGreen),
         hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade600),
+
         filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
+        fillColor: Colors.white,
+
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: primaryGreen, width: 1.5),
         ),
       ),
     );
   }
 
+  /// PASSWORD
   Widget buildPasswordField() {
-
     return TextFormField(
       controller: passwordController,
       obscureText: obscurePassword,
+
+      style: const TextStyle(color: Colors.black),
 
       validator: (value) {
         if (value == null || value.isEmpty) return "Password required";
@@ -324,6 +344,7 @@ class _GymRegistrationScreenState
 
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.lock, color: primaryGreen),
+
         suffixIcon: IconButton(
           icon: Icon(
             obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -332,22 +353,33 @@ class _GymRegistrationScreenState
           onPressed: () =>
               setState(() => obscurePassword = !obscurePassword),
         ),
+
         hintText: "Password",
+        hintStyle: TextStyle(color: Colors.grey.shade600),
+
         filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
+        fillColor: Colors.white,
+
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: primaryGreen, width: 1.5),
         ),
       ),
     );
   }
 
+  /// CONFIRM PASSWORD
   Widget buildConfirmPasswordField() {
-
     return TextFormField(
       controller: confirmPasswordController,
       obscureText: obscureConfirmPassword,
+
+      style: const TextStyle(color: Colors.black),
 
       validator: (value) {
         if (value != passwordController.text) {
@@ -358,6 +390,7 @@ class _GymRegistrationScreenState
 
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.lock_outline, color: primaryGreen),
+
         suffixIcon: IconButton(
           icon: Icon(
             obscureConfirmPassword
@@ -368,12 +401,21 @@ class _GymRegistrationScreenState
           onPressed: () => setState(() =>
           obscureConfirmPassword = !obscureConfirmPassword),
         ),
+
         hintText: "Confirm Password",
+        hintStyle: TextStyle(color: Colors.grey.shade600),
+
         filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
+        fillColor: Colors.white,
+
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: primaryGreen, width: 1.5),
         ),
       ),
     );

@@ -48,11 +48,13 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> login() async {
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
 
     try {
+
       final response = await ApiService.login(
         emailController.text.trim(),
         passwordController.text.trim(),
@@ -61,13 +63,16 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => isLoading = false);
 
       if (response["status"] == "success") {
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => const MainNavigationScreen(),
           ),
         );
+
       } else {
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response["message"] ?? "Login failed"),
@@ -75,7 +80,9 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         );
       }
+
     } catch (e) {
+
       setState(() => isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,231 +96,181 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: bgWhite,
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
 
-          return Stack(
-            children: [
+      body: Stack(
+        children: [
 
-              /// 🌿 BACKGROUND GRADIENT
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFFF7F9FC),
-                      Color(0xFFE8F5E9),
-                      Color(0xFFD0F0E0),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+          /// 🌿 BACKGROUND
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFF7F9FC),
+                  Color(0xFFE8F5E9),
+                  Color(0xFFD0F0E0),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+            ),
+          ),
 
-              /// 🌿 SOFT GLOW
-              Positioned(
-                top: -80,
-                left: -60,
-                child: glowCircle(primaryGreen),
-              ),
+          /// 🌿 GLOW
+          Positioned(
+            top: -80,
+            left: -60,
+            child: glowCircle(primaryGreen),
+          ),
 
-              Positioned(
-                bottom: -100,
-                right: -60,
-                child: glowCircle(lightGreen),
-              ),
+          Positioned(
+            bottom: -100,
+            right: -60,
+            child: glowCircle(lightGreen),
+          ),
 
-              /// 🧊 LOGIN CARD
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
+          /// 🧊 CARD
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
 
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
 
-                      child: Container(
-                        padding: const EdgeInsets.all(30),
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
 
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+
+                    child: Form(
+                      key: _formKey,
+
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+
+                          /// LOGO
+                          Container(
+                            height: 90,
+                            width: 90,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [primaryGreen, lightGreen],
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.fitness_center,
+                              color: Colors.white,
+                              size: 40,
+                            ),
                           ),
-                        ),
 
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                          const SizedBox(height: 20),
+
+                          const Text(
+                            "Trainer Login",
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          /// EMAIL
+                          textField(
+                            controller: emailController,
+                            hint: "Email Address",
+                            icon: Icons.email,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          /// PASSWORD
+                          passwordField(),
+
+                          const SizedBox(height: 15),
+
+                          /// FORGOT
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                    const ForgotPasswordScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "Forgot Password?",
+                                style: TextStyle(color: primaryGreen),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          /// BUTTON
+                          glowingButton(),
+
+                          const SizedBox(height: 15),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
 
-                              /// 🟢 LOGO
-                              Container(
-                                height: 90,
-                                width: 90,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      primaryGreen,
-                                      lightGreen,
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: primaryGreen.withOpacity(.4),
-                                      blurRadius: 25,
-                                    )
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.fitness_center,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
                               const Text(
-                                "Trainer Login",
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                                "Don't have an account?",
+                                style: TextStyle(color: Colors.black54),
                               ),
 
-                              const SizedBox(height: 30),
-
-                              /// EMAIL
-                              textField(
-                                controller: emailController,
-                                hint: "Email Address",
-                                icon: Icons.email,
-
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              /// PASSWORD
-                              TextFormField(
-                                controller: passwordController,
-                                obscureText: obscurePassword,
-                                validator: (v) =>
-                                v!.isEmpty ? "Password required" : null,
-
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.lock,
-                                      color: primaryGreen),
-
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                      color: primaryGreen,
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                      const LocationDetectScreen(),
                                     ),
-                                    onPressed: () {
-                                      setState(() {
-                                        obscurePassword = !obscurePassword;
-                                      });
-                                    },
-                                  ),
-
-                                  hintText: "Password",
-
-                                  filled: true,
-                                  fillColor: Colors.grey.shade100,
-
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(18),
-                                    borderSide: BorderSide.none,
+                                  );
+                                },
+                                child: const Text(
+                                  "Register",
+                                  style: TextStyle(
+                                    color: primaryGreen,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
-
-                              const SizedBox(height: 15),
-
-                              /// FORGOT
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                        const ForgotPasswordScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    "Forgot Password?",
-                                    style: TextStyle(color: primaryGreen),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              /// BUTTON
-                              glowingButton(),
-
-                              const SizedBox(height: 15),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-
-                                  const Text(
-                                    "Don't have an account?",
-                                    style: TextStyle(color: Colors.black54),
-                                  ),
-
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                          const LocationDetectScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text(
-                                      "Register",
-                                      style: TextStyle(
-                                        color: primaryGreen,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  /// ✅ FIXED TEXT FIELD
   Widget textField({
     required TextEditingController controller,
     required String hint,
@@ -321,17 +278,93 @@ class _LoginScreenState extends State<LoginScreen>
   }) {
     return TextFormField(
       controller: controller,
-      validator: (v) =>
-      v!.isEmpty ? "Field required" : null,
+
+      style: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w500,
+      ),
+
+      validator: (v) => v!.isEmpty ? "Field required" : null,
 
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: primaryGreen),
+
         hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade600),
+
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: Colors.white,
+
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
+        ),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+      ),
+    );
+  }
+
+  /// PASSWORD FIELD
+  Widget passwordField() {
+    return TextFormField(
+      controller: passwordController,
+      obscureText: obscurePassword,
+
+      style: const TextStyle(color: Colors.black),
+
+      validator: (v) =>
+      v!.isEmpty ? "Password required" : null,
+
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.lock, color: primaryGreen),
+
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscurePassword
+                ? Icons.visibility_off
+                : Icons.visibility,
+            color: primaryGreen,
+          ),
+          onPressed: () {
+            setState(() {
+              obscurePassword = !obscurePassword;
+            });
+          },
+        ),
+
+        hintText: "Password",
+        hintStyle: TextStyle(color: Colors.grey.shade600),
+
+        filled: true,
+        fillColor: Colors.white,
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
+            color: primaryGreen,
+            width: 1.5,
+          ),
+        ),
+
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Colors.red),
         ),
       ),
     );
@@ -345,10 +378,7 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            primaryGreen,
-            lightGreen,
-          ],
+          colors: [primaryGreen, lightGreen],
         ),
       ),
 
@@ -357,7 +387,9 @@ class _LoginScreenState extends State<LoginScreen>
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
+
         onPressed: isLoading ? null : login,
+
         child: isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : const Text(

@@ -447,7 +447,7 @@ class ApiService {
 
   static Future<Map> verifyCheckin({
     required String token,
-    required int exerciseId,
+
   }) async {
 
     final prefs = await SharedPreferences.getInstance();
@@ -461,7 +461,7 @@ class ApiService {
       },
       body: {
         "token": token,
-        "exercise_id": exerciseId.toString(),
+
       },
     );
 

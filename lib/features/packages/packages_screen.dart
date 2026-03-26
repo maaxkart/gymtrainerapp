@@ -46,8 +46,9 @@ class _PackagesScreenState extends State<PackagesScreen>
 
   Future<void> _loadData() async {
     try {
-      final plans    = await ApiService.getGymPlans();
       final gymPlans = await ApiService.getMyGymPlans();
+      final plans    = await ApiService.getGymPlans();
+
       if (mounted) {
         setState(() {
           availablePlans = (plans    as List?) ?? [];
@@ -89,8 +90,9 @@ class _PackagesScreenState extends State<PackagesScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildAvailableTab(),
                   _buildMyPlansTab(),
+                  _buildAvailableTab(),
+
                 ],
               ),
             ),
@@ -194,8 +196,9 @@ class _PackagesScreenState extends State<PackagesScreen>
               fontWeight: FontWeight.w500,
             ),
             tabs: const [
-              Tab(text: "Available Plans"),
+
               Tab(text: "My Plans"),
+              Tab(text: "Available Plans"),
             ],
           ),
         ],

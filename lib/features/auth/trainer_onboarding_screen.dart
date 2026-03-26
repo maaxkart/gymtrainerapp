@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../gymregistration/register.dart';
 
-const primaryGreen = Color(0xFFD5EB45);
-const lightGreen = Color(0xFFD5EB45);
-const bgWhite = Color(0xFFF7F9FC);
+/// ✅ BETTER COLORS
+const primaryGreen = Color(0xFFC8DC32); // lime
+const lightGreen = Color(0xFFC8DC32);   // soft green
 
 class TrainerOnboardingScreen extends StatefulWidget {
 
@@ -106,7 +106,7 @@ class _TrainerOnboardingScreenState
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: bgWhite,
+      backgroundColor: Colors.black, // better for images
       bottomNavigationBar: _bottomButton(),
 
       body: loading
@@ -156,7 +156,7 @@ class _TrainerOnboardingScreenState
                   decoration: BoxDecoration(
                     color: page == i
                         ? primaryGreen
-                        : Colors.grey.shade300,
+                        : Colors.white24,
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -183,14 +183,14 @@ class _TrainerOnboardingScreenState
 
         Image.network(image, fit: BoxFit.cover),
 
-        /// 🌿 LIGHT OVERLAY (instead of dark)
+        /// 🔥 DARK OVERLAY (IMPORTANT)
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withOpacity(0.7),
-                Colors.white.withOpacity(0.4),
-                Colors.white.withOpacity(0.8),
+                Colors.black.withOpacity(0.8),
+                Colors.black.withOpacity(0.4),
+                Colors.black.withOpacity(0.9),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -204,19 +204,21 @@ class _TrainerOnboardingScreenState
 
               const Spacer(),
 
-              /// 🧊 CARD
+              /// 💎 GLASS CARD
               Container(
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(24),
 
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(28),
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.black.withOpacity(0.75),
+
+                  border: Border.all(color: Colors.white10),
 
                   boxShadow: [
                     BoxShadow(
-                      color: primaryGreen.withOpacity(0.15),
-                      blurRadius: 25,
+                      color: primaryGreen.withOpacity(0.2),
+                      blurRadius: 30,
                     )
                   ],
                 ),
@@ -225,21 +227,23 @@ class _TrainerOnboardingScreenState
                   mainAxisSize: MainAxisSize.min,
                   children: [
 
+                    /// TITLE
                     Text(
                       title,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Colors.white, // ✅ FIXED
                       ),
                     ),
 
                     const SizedBox(height: 30),
 
+                    /// BUTTON
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                        isSelected ? primaryGreen : Colors.grey.shade200,
+                        isSelected ? primaryGreen : Colors.white10,
 
                         padding: const EdgeInsets.symmetric(
                             horizontal: 30, vertical: 14),
@@ -270,8 +274,8 @@ class _TrainerOnboardingScreenState
 
                         style: TextStyle(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.black87,
+                              ? Colors.black
+                              : Colors.white,
                         ),
                       ),
                     )
@@ -313,7 +317,7 @@ class _TrainerOnboardingScreenState
                 : "Continue",
 
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),

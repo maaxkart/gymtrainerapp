@@ -96,6 +96,58 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   String _safeId(dynamic user) =>
       (user?["id"] ?? 0).toString();
 
+  // ── CHECKOUT DIALOG ───────────────────────────────────
+  void _showCheckoutDialog(dynamic user) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: kSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          "Check Out Member",
+          style: TextStyle(
+            color: kText1,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          "Check out ${_safeName(user)} from ${_safeExercise(user)}?",
+          style: const TextStyle(color: kText2, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: kText2, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kGold,
+              foregroundColor: kGoldDeep,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _checkout(user["id"] as int);
+            },
+            child: const Text(
+              "Check Out",
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,7 +196,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       padding: const EdgeInsets.fromLTRB(20, 56, 20, 0),
       child: Column(
         children: [
-          // Title row
           Row(
             children: [
               GestureDetector(
@@ -205,7 +256,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
           const SizedBox(height: 14),
 
-          // Tab bar
           TabBar(
             controller: _tabController,
             indicatorColor: kGold,
@@ -340,7 +390,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Icon(Icons.swipe_left_outlined, size: 14, color: kText2),
           SizedBox(width: 6),
           Text(
-            "Swipe left to check out a member",
+            "Swipe left or tap 'Check Out' to check out a member",
             style: TextStyle(color: kText2, fontSize: 11),
           ),
         ],
@@ -401,11 +451,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ),
           onDismissed: (_) => _checkout(u["id"] as int),
-          child: _MemberTile(
-            name:     _safeName(u),
-            exercise: _safeExercise(u),
-            checkin:  _safeCheckin(u),
-            checkout: null,
+          child: _MemberTileWithCheckout(
+            name:      _safeName(u),
+            exercise:  _safeExercise(u),
+            checkin:   _safeCheckin(u),
+            onCheckout: () => _showCheckoutDialog(u),
           ),
         );
       },
@@ -443,12 +493,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               color: kGoldLight,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(Icons.inbox_outlined,
-                color: kGoldDark, size: 30),
+            child: const Icon(Icons.inbox_outlined, color: kGoldDark, size: 30),
           ),
           const SizedBox(height: 14),
-          Text(msg,
-              style: const TextStyle(color: kText2, fontSize: 13)),
+          Text(msg, style: const TextStyle(color: kText2, fontSize: 13)),
         ],
       ),
     );
@@ -524,7 +572,6 @@ class _StatCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // accent bar
           Container(height: 3, color: accentColor),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -564,7 +611,7 @@ class _StatCard extends StatelessWidget {
   );
 }
 
-// ── MEMBER TILE ───────────────────────────────────────────────
+// ── MEMBER TILE (Overview & Pending tabs) ─────────────────────
 class _MemberTile extends StatelessWidget {
   final String  name, exercise, checkin;
   final String? checkout;
@@ -582,9 +629,8 @@ class _MemberTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive  = checkout == null && !forcePending;
     final isDone    = checkout != null;
-    final isPending = forcePending || (checkout == null && !isActive);
 
-    final initials  = name.trim().isNotEmpty
+    final initials = name.trim().isNotEmpty
         ? name.trim().split(" ").map((w) => w[0]).take(2).join().toUpperCase()
         : "M";
 
@@ -619,7 +665,6 @@ class _MemberTile extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(width: 12),
 
           // Name + exercise
@@ -640,7 +685,7 @@ class _MemberTile extends StatelessWidget {
             ),
           ),
 
-          // Time + status
+          // Time + status badge
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -658,8 +703,7 @@ class _MemberTile extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 9, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
                   color: isDone
                       ? kGreenBg
@@ -683,6 +727,114 @@ class _MemberTile extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── MEMBER TILE WITH CHECKOUT BUTTON (Checked-in tab) ─────────
+class _MemberTileWithCheckout extends StatelessWidget {
+  final String       name, exercise, checkin;
+  final VoidCallback onCheckout;
+
+  const _MemberTileWithCheckout({
+    required this.name,
+    required this.exercise,
+    required this.checkin,
+    required this.onCheckout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = name.trim().isNotEmpty
+        ? name.trim().split(" ").map((w) => w[0]).take(2).join().toUpperCase()
+        : "M";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kGoldBorder, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: kGold,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: kGoldDeep,
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Name + exercise + check-in time
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(
+                      color: kText1,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    )),
+                const SizedBox(height: 3),
+                Text(exercise,
+                    style: const TextStyle(color: kText2, fontSize: 11)),
+                const SizedBox(height: 4),
+                Text(
+                  "IN $checkin",
+                  style: const TextStyle(
+                    color: kGoldDark,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Checkout button
+          GestureDetector(
+            onTap: onCheckout,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: kGoldLight,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: kGoldBorder),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.logout_rounded, color: kGoldDark, size: 14),
+                  SizedBox(width: 5),
+                  Text(
+                    "Check Out",
+                    style: TextStyle(
+                      color: kGoldDark,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
