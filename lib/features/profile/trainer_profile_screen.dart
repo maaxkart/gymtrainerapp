@@ -8,7 +8,11 @@ import '../payments/payments_screen.dart';
 import '../packages/packages_screen.dart';
 import '../equipment/equipment_screen.dart';
 import '../videos/videos_screen.dart';
+import '../accounts/ledger_screen.dart';      // ← NEW
+import '../accounts/pnl_screen.dart';         // ← NEW
+import '../accounts/daybook_screen.dart';     // ← NEW
 import 'edit_profile_screen.dart';
+import '../members/members_screen.dart';
 
 // ── Brand tokens ─────────────────────────────────────
 const kGold       = Color(0xFFC8DC32);
@@ -80,52 +84,18 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Back
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: kSurface2,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kBorder),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 15,
-                  color: kText1,
-                ),
-              ),
-            ),
-
             const Text(
               "My Profile",
-              style: TextStyle(
-                color: kText1,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
-              ),
+              style: TextStyle(color: kText1, fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: -0.3),
             ),
-
-            // Edit
             GestureDetector(
               onTap: () => _go(context, const EditProfileScreen()),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                decoration: BoxDecoration(
-                  color: kGold,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: kGold, borderRadius: BorderRadius.circular(12)),
                 child: const Text(
                   "EDIT",
-                  style: TextStyle(
-                    color: kGoldDeep,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
-                  ),
+                  style: TextStyle(color: kGoldDeep, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.6),
                 ),
               ),
             ),
@@ -146,7 +116,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── Gold cover strip with hatch overlay ──
             Stack(
               children: [
@@ -159,11 +128,7 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     ),
                   ),
                 ),
-                // Diagonal hatch texture
-                CustomPaint(
-                  size: const Size(double.infinity, 90),
-                  painter: _HatchPainter(),
-                ),
+                CustomPaint(size: const Size(double.infinity, 90), painter: _HatchPainter()),
               ],
             ),
 
@@ -173,7 +138,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Avatar frame — pulled up over cover
                   Transform.translate(
                     offset: const Offset(0, -36),
                     child: Stack(
@@ -185,13 +149,7 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(26),
                             border: Border.all(color: kSurface, width: 4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: kGold.withOpacity(.35),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
+                            boxShadow: [BoxShadow(color: kGold.withOpacity(.35), blurRadius: 20, offset: const Offset(0, 8))],
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(22),
@@ -200,41 +158,27 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: kGoldLight,
-                                child: const Icon(
-                                  Icons.person,
-                                  color: kGoldDark,
-                                  size: 40,
-                                ),
+                                child: const Icon(Icons.person, color: kGoldDark, size: 40),
                               ),
                             ),
                           ),
                         ),
-                        // Verified badge
                         Positioned(
-                          bottom: 2,
-                          right: 2,
+                          bottom: 2, right: 2,
                           child: Container(
-                            width: 24,
-                            height: 24,
+                            width: 24, height: 24,
                             decoration: BoxDecoration(
                               color: kGold,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: kSurface, width: 2),
                             ),
-                            child: const Icon(
-                              Icons.verified_rounded,
-                              color: kGoldDeep,
-                              size: 12,
-                            ),
+                            child: const Icon(Icons.verified_rounded, color: kGoldDeep, size: 12),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 14),
-
-                  // Name + email (aligned to bottom of avatar)
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 6),
@@ -243,21 +187,12 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                         children: [
                           Text(
                             userName.isNotEmpty ? userName : "Trainer",
-                            style: const TextStyle(
-                              color: kText1,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.4,
-                            ),
+                            style: const TextStyle(color: kText1, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -0.4),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             email.isNotEmpty ? email : "trainer@gym.com",
-                            style: const TextStyle(
-                              color: kText2,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: const TextStyle(color: kText2, fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -279,34 +214,14 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: kGoldBorder),
                     ),
-                    child: const Text(
-                      "HEAD TRAINER",
-                      style: TextStyle(
-                        color: kGoldDark,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
+                    child: const Text("HEAD TRAINER",
+                      style: TextStyle(color: kGoldDark, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: kGreen,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: kGreen, shape: BoxShape.circle)),
                   const SizedBox(width: 5),
-                  const Text(
-                    "Online",
-                    style: TextStyle(
-                      color: kGreen,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  const Text("Online", style: TextStyle(color: kGreen, fontSize: 11, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -316,11 +231,11 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               child: Row(
                 children: [
-                  _StatPill("120",  "Clients",  kGoldDark, true),
+                  _StatPill("120",  "Clients", kGoldDark, true),
                   const SizedBox(width: 10),
-                  _StatPill("₹35K", "Revenue",  kText1,    false),
+                  _StatPill("₹35K", "Revenue", kText1,    false),
                   const SizedBox(width: 10),
-                  _StatPill("4.9★", "Rating",   kGoldDark, true),
+                  _StatPill("4.9★", "Rating",  kGoldDark, true),
                 ],
               ),
             ),
@@ -329,8 +244,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
       ),
     );
   }
-
-
 
   // ── BODY ───────────────────────────────────────────
   Widget _buildBody(BuildContext context) {
@@ -359,6 +272,14 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
               iconColor: kGoldDark,
               onTap: () => _go(context, PackagesScreen()),
             ),
+            // _MenuCard(
+            //   icon: Icons.person_add_alt_1_rounded,
+            //   title: "Add Member",
+            //   subtitle: "Register new gym member",
+            //   iconBg: kGoldLight,
+            //   iconColor: kGoldDark,
+            //   onTap: () => _go(context, MembersScreen()),
+            // ),
             _MenuCard(
               icon: Icons.fitness_center_outlined,
               title: "Equipment",
@@ -375,6 +296,86 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
               iconColor: kText1,
               onTap: () => _go(context, const VideosScreen()),
             ),
+
+            // ── NEW: Features / Accounts section ─────────────────────────
+            const SizedBox(height: 8),
+            const _SectionLabel("Accounts & Finance"),
+
+            // Mini feature banner
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [kGold, Color(0xFFDDED60)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  CustomPaint(
+                    size: const Size(double.infinity, 56),
+                    painter: _HatchPainter(),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 46, height: 46,
+                        decoration: BoxDecoration(
+                          color: kGoldDeep.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: const Icon(Icons.account_balance_outlined, color: kGoldDeep, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Finance Suite",
+                              style: TextStyle(color: kGoldDeep, fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                            SizedBox(height: 2),
+                            Text("Ledger · P&L · Day Book",
+                              style: TextStyle(color: kGoldDeep, fontSize: 11, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            _MenuCard(
+              icon: Icons.menu_book_outlined,
+              title: "Ledger",
+              subtitle: "All credit & debit entries",
+              iconBg: kGoldLight,
+              iconColor: kGoldDark,
+              onTap: () => _go(context, const LedgerScreen
+                ()),
+            ),
+            _MenuCard(
+              icon: Icons.trending_up_rounded,
+              title: "P & L Account",
+              subtitle: "Profit & loss statement",
+              iconBg: kGoldLight,
+              iconColor: kGoldDark,
+              onTap: () => _go(context, const PnlScreen()),
+            ),
+            _MenuCard(
+              icon: Icons.calendar_today_outlined,
+              title: "Day Book",
+              subtitle: "Daily transaction register",
+              iconBg: kGoldLight,
+              iconColor: kGoldDark,
+              onTap: () => _go(context, const DaybookScreen()),
+            ),
+            // ─────────────────────────────────────────────────────────────
 
             const SizedBox(height: 8),
             const _SectionLabel("Account & Security"),
@@ -402,51 +403,25 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                 child: Row(
                   children: [
                     Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: kRedBorder,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: const Icon(
-                        Icons.logout_rounded,
-                        color: kRed,
-                        size: 20,
-                      ),
+                      width: 46, height: 46,
+                      decoration: BoxDecoration(color: kRedBorder, borderRadius: BorderRadius.circular(15)),
+                      child: const Icon(Icons.logout_rounded, color: kRed, size: 20),
                     ),
                     const SizedBox(width: 14),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Logout",
-                              style: TextStyle(
-                                color: kRed,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              )),
+                          Text("Logout", style: TextStyle(color: kRed, fontSize: 14, fontWeight: FontWeight.w700)),
                           SizedBox(height: 2),
-                          Text("Sign out of your account",
-                              style: TextStyle(
-                                color: kRed,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w400,
-                              )),
+                          Text("Sign out of your account", style: TextStyle(color: kRed, fontSize: 11, fontWeight: FontWeight.w400)),
                         ],
                       ),
                     ),
                     Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: kRedBorder,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 12,
-                        color: kRed,
-                      ),
+                      width: 28, height: 28,
+                      decoration: BoxDecoration(color: kRedBorder, borderRadius: BorderRadius.circular(9)),
+                      child: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: kRed),
                     ),
                   ],
                 ),
@@ -476,19 +451,12 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
 class _HatchPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black.withOpacity(0.06)
-      ..strokeWidth = 1;
+    final paint = Paint()..color = Colors.black.withOpacity(0.06)..strokeWidth = 1;
     const spacing = 14.0;
     for (double i = -size.height; i < size.width + size.height; i += spacing) {
-      canvas.drawLine(
-        Offset(i, 0),
-        Offset(i + size.height, size.height),
-        paint,
-      );
+      canvas.drawLine(Offset(i, 0), Offset(i + size.height, size.height), paint);
     }
   }
-
   @override
   bool shouldRepaint(_HatchPainter old) => false;
 }
@@ -503,12 +471,7 @@ class _SectionLabel extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
-        color: kText2,
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.5,
-      ),
+      style: const TextStyle(color: kText2, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5),
     ),
   );
 }
@@ -530,79 +493,20 @@ class _StatPill extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // top accent bar
-          Container(
-            height: 3,
-            decoration: BoxDecoration(
-              color: hasAccent ? kGold : kText1,
-            ),
-          ),
+          Container(height: 3, decoration: BoxDecoration(color: hasAccent ? kGold : kText1)),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               children: [
                 Text(value,
-                    style: TextStyle(
-                      color: valueColor,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    )),
+                    style: TextStyle(color: valueColor, fontSize: 17, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                 const SizedBox(height: 3),
                 Text(label.toUpperCase(),
-                    style: const TextStyle(
-                      color: kText2,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    )),
+                    style: const TextStyle(color: kText2, fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 1)),
               ],
             ),
           ),
         ],
-      ),
-    ),
-  );
-}
-
-class _QuickAction extends StatelessWidget {
-  final IconData icon;
-  final String   label;
-  final bool     isPrimary;
-  final VoidCallback onTap;
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.isPrimary,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isPrimary ? kGold : kSurface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isPrimary ? kGold : kBorder),
-        ),
-        child: Column(
-          children: [
-            Icon(icon,
-              size: 20,
-              color: isPrimary ? kGoldDeep : kText1,
-            ),
-            const SizedBox(height: 6),
-            Text(label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: isPrimary ? kGoldDeep : kText1,
-                )),
-          ],
-        ),
       ),
     ),
   );
@@ -637,12 +541,8 @@ class _MenuCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(15),
-            ),
+            width: 46, height: 46,
+            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(15)),
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 14),
@@ -650,30 +550,16 @@ class _MenuCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(
-                      color: kText1,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    )),
+                Text(title, style: const TextStyle(color: kText1, fontSize: 14, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: const TextStyle(color: kText2, fontSize: 11)),
+                Text(subtitle, style: const TextStyle(color: kText2, fontSize: 11)),
               ],
             ),
           ),
           Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: kSurface2,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 12,
-              color: kText2,
-            ),
+            width: 28, height: 28,
+            decoration: BoxDecoration(color: kSurface2, borderRadius: BorderRadius.circular(9)),
+            child: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: kText2),
           ),
         ],
       ),
@@ -688,10 +574,7 @@ class ProfileStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Text(value,
-          style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w900, color: kText1,
-          )),
+      Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: kText1)),
       const SizedBox(height: 4),
       Text(label, style: const TextStyle(color: kText2, fontSize: 12)),
     ],

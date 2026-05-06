@@ -231,7 +231,7 @@ class _InboxPageState extends State<_InboxPage>
         ]),
       ),
       SizedBox(
-        height: 92,
+        height: 115,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),

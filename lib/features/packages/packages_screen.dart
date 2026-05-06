@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
-import 'add_package_screen.dart';
 
 // ── Brand tokens ──────────────────────────────────────
 const kGold       = Color(0xFFC8DC32);
@@ -15,6 +13,39 @@ const kBorder     = Color(0xFFEFEFEF);
 const kText1      = Color(0xFF111111);
 const kText2      = Color(0xFFAAAAAA);
 
+// ── Static plan model ─────────────────────────────────
+class GymPlan {
+  final int    id;
+  String       planName;
+  int          duration;
+  String       billingCycle; // "Month", "Months", "Year"
+  double       price;
+  bool         isPopular;
+
+  GymPlan({
+    required this.id,
+    required this.planName,
+    required this.duration,
+    required this.billingCycle,
+    required this.price,
+    this.isPopular = false,
+  });
+
+  String get durationLabel => "$duration $billingCycle";
+  String get priceLabel    => "₹${price.toStringAsFixed(0)}";
+}
+
+// ── Default built-in plans (editable) ─────────────────
+List<GymPlan> _defaultPlans() => [
+  GymPlan(id: 1, planName: "Monthly Basic",   duration: 1,  billingCycle: "Month",  price: 799),
+  GymPlan(id: 2, planName: "Quarterly Plan",  duration: 3,  billingCycle: "Months", price: 2099, isPopular: true),
+  GymPlan(id: 3, planName: "Half Yearly",     duration: 6,  billingCycle: "Months", price: 3799),
+  GymPlan(id: 4, planName: "Annual Gold",     duration: 12, billingCycle: "Months", price: 6499, isPopular: true),
+];
+
+// ═══════════════════════════════════════════════════════
+//  PACKAGES SCREEN
+// ═══════════════════════════════════════════════════════
 class PackagesScreen extends StatefulWidget {
   const PackagesScreen({super.key});
 
@@ -27,15 +58,15 @@ class _PackagesScreenState extends State<PackagesScreen>
 
   late TabController _tabController;
 
-  List availablePlans = [];
-  List myPlans        = [];
-  bool loading        = true;
+  // All plans live in a single list; "My Plans" = plans the gym has activated
+  final List<GymPlan> _allPlans    = _defaultPlans();
+  final List<GymPlan> _activePlans = [];   // plans the gym has "added"
 
+  // ── Lifecycle ──────────────────────────────────────
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadData();
   }
 
   @override
@@ -44,64 +75,104 @@ class _PackagesScreenState extends State<PackagesScreen>
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    try {
-      final gymPlans = await ApiService.getMyGymPlans();
-      final plans    = await ApiService.getGymPlans();
-
-      if (mounted) {
-        setState(() {
-          availablePlans = (plans    as List?) ?? [];
-          myPlans        = (gymPlans as List?) ?? [];
-          loading        = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => loading = false);
-    }
-  }
-
-  // ── Icon picker based on plan name ───────────────────
+  // ── Helpers ────────────────────────────────────────
   IconData _iconFor(String title) {
     final t = title.toLowerCase();
-    if (t.contains("year") || t.contains("annual")) return Icons.emoji_events_outlined;
-    if (t.contains("quarter"))                       return Icons.timelapse_outlined;
-    if (t.contains("month"))                         return Icons.calendar_month_outlined;
-    if (t.contains("premium") || t.contains("gold")) return Icons.workspace_premium_outlined;
+    if (t.contains("year")    || t.contains("annual"))  return Icons.emoji_events_outlined;
+    if (t.contains("quarter"))                           return Icons.timelapse_outlined;
+    if (t.contains("half")    || t.contains("6"))       return Icons.date_range_outlined;
+    if (t.contains("month"))                             return Icons.calendar_month_outlined;
+    if (t.contains("premium") || t.contains("gold"))    return Icons.workspace_premium_outlined;
     return Icons.fitness_center_outlined;
   }
 
+  bool _isActive(GymPlan plan) => _activePlans.any((p) => p.id == plan.id);
+
+  // ── Add / Edit plan via bottom sheet ───────────────
+  void _openAddPlanSheet({GymPlan? existing}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AddPlanSheet(
+        existing:   existing,
+        onSave:     (plan) {
+          setState(() {
+            if (existing == null) {
+              // New plan: add to master list
+              _allPlans.add(plan);
+            } else {
+              // Edit: update in place
+              final idx = _allPlans.indexWhere((p) => p.id == plan.id);
+              if (idx != -1) _allPlans[idx] = plan;
+              final aIdx = _activePlans.indexWhere((p) => p.id == plan.id);
+              if (aIdx != -1) _activePlans[aIdx] = plan;
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  // ── Activate / deactivate a plan ───────────────────
+  void _activatePlan(GymPlan plan) {
+    setState(() => _activePlans.add(plan));
+    ScaffoldMessenger.of(context).showSnackBar(_snack("${plan.planName} added to My Plans"));
+  }
+
+  void _deactivatePlan(GymPlan plan) {
+    setState(() => _activePlans.removeWhere((p) => p.id == plan.id));
+    ScaffoldMessenger.of(context).showSnackBar(_snack("${plan.planName} removed"));
+  }
+
+  void _deletePlan(GymPlan plan) {
+    setState(() {
+      _allPlans.removeWhere((p) => p.id == plan.id);
+      _activePlans.removeWhere((p) => p.id == plan.id);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(_snack("${plan.planName} deleted"));
+  }
+
+  SnackBar _snack(String msg) => SnackBar(
+    content: Text(msg,
+        style: const TextStyle(color: kGoldDeep, fontWeight: FontWeight.w600)),
+    backgroundColor: kGold,
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    margin: const EdgeInsets.all(16),
+  );
+
+  // ── Build ──────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBg,
+      floatingActionButton: _buildFAB(),
       body: Column(
         children: [
           _buildTopBar(),
-          if (loading)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(
-                    color: kGold, strokeWidth: 2.5),
-              ),
-            )
-          else
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildMyPlansTab(),
-                  _buildAvailableTab(),
-
-                ],
-              ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [_buildMyPlansTab(), _buildAllPlansTab()],
             ),
+          ),
         ],
       ),
     );
   }
 
-  // ── TOP BAR ──────────────────────────────────────────
+  // ── FAB ────────────────────────────────────────────
+  Widget _buildFAB() => FloatingActionButton.extended(
+    onPressed: () => _openAddPlanSheet(),
+    backgroundColor: kGold,
+    foregroundColor: kGoldDeep,
+    icon: const Icon(Icons.add_rounded),
+    label: const Text("New Plan",
+        style: TextStyle(fontWeight: FontWeight.w800)),
+  );
+
+  // ── TOP BAR ────────────────────────────────────────
   Widget _buildTopBar() {
     return Container(
       decoration: const BoxDecoration(
@@ -111,75 +182,31 @@ class _PackagesScreenState extends State<PackagesScreen>
       padding: const EdgeInsets.fromLTRB(20, 56, 20, 0),
       child: Column(
         children: [
-          // Title row
           Row(
             children: [
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 38, height: 38,
                   decoration: BoxDecoration(
                     color: kSurface2,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: kBorder),
                   ),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 15,
-                    color: kText1,
-                  ),
+                  child: const Icon(Icons.arrow_back_ios_new_rounded,
+                      size: 15, color: kText1),
                 ),
               ),
               const SizedBox(width: 14),
               const Expanded(
-                child: Text(
-                  "Gym Packages",
-                  style: TextStyle(
-                    color: kText1,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  // If available plans are loaded, go to Available Plans tab
-                  // so trainer picks a base plan and taps "Add Plan".
-                  // If already on Available Plans tab, just show a hint.
-                  if (availablePlans.isNotEmpty) {
-                    _tabController.animateTo(0);
-                  }
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        "Select a base plan below to add",
-                        style: TextStyle(
-                          color: kGoldDeep,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      backgroundColor: kGold,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      margin: const EdgeInsets.all(16),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 9),
-
-                ),
+                child: Text("Gym Packages",
+                    style: TextStyle(
+                        color: kText1, fontSize: 16,
+                        fontWeight: FontWeight.w800, letterSpacing: -0.3)),
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
-          // Tab bar
           TabBar(
             controller: _tabController,
             indicatorColor: kGold,
@@ -187,18 +214,11 @@ class _PackagesScreenState extends State<PackagesScreen>
             indicatorSize: TabBarIndicatorSize.label,
             labelColor: kGoldDark,
             unselectedLabelColor: kText2,
-            labelStyle: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: const [
-
-              Tab(text: "My Plans"),
-              Tab(text: "Available Plans"),
+            labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            tabs: [
+              Tab(text: "My Plans (${_activePlans.length})"),
+              Tab(text: "All Plans (${_allPlans.length})"),
             ],
           ),
         ],
@@ -206,94 +226,74 @@ class _PackagesScreenState extends State<PackagesScreen>
     );
   }
 
-  // ── AVAILABLE PLANS TAB ──────────────────────────────
-  Widget _buildAvailableTab() {
-    if (availablePlans.isEmpty) return _emptyState("No plans available");
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: availablePlans.length + 1, // +1 for hero card
-      itemBuilder: (context, i) {
-        if (i == 0) return _buildHeroCard(availablePlans.length, "Available");
-
-        final plan  = Map<String, dynamic>.from(
-            availablePlans[i - 1] as Map? ?? {});
-        final title = plan["plan_name"]?.toString() ?? "Plan";
-        final dur   =
-        "${plan["duration"]?.toString() ?? ""} ${plan["billing_cycle"]?.toString() ?? ""}".trim();
-
-        return _PlanCard(
-          title:      title,
-          duration:   dur,
-          price:      "Set Price",
-          isPriceSet: false,
-          buttonText: "Add Plan",
-          icon:       _iconFor(title),
-          isPopular:  title.toLowerCase().contains("gold") ||
-              title.toLowerCase().contains("premium"),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AddPackageScreen(
-                  planId:   (plan["id"] as num?)?.toInt() ?? 0,
-                  planName: title,
-                  isEdit:   false,
-                ),
-              ),
-            ).then((_) => _loadData());
-          },
-        );
-      },
-    );
-  }
-
-  // ── MY PLANS TAB ──────────────────────────────────────
+  // ── MY PLANS TAB ───────────────────────────────────
   Widget _buildMyPlansTab() {
-    if (myPlans.isEmpty) return _emptyState("No plans added yet");
-
+    if (_activePlans.isEmpty) {
+      return _emptyState("No active plans yet",
+          sub: "Go to 'All Plans' and tap Add to activate");
+    }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: myPlans.length + 1,
-      itemBuilder: (context, i) {
-        if (i == 0) return _buildHeroCard(myPlans.length, "My Active");
-
-        final plan    = Map<String, dynamic>.from(
-            myPlans[i - 1] as Map? ?? {});
-        final gymPlan = Map<String, dynamic>.from(
-            plan["gym_plan"] as Map? ?? {});
-        final title   = gymPlan["plan_name"]?.toString() ?? "Plan";
-        final dur     =
-        "${gymPlan["duration"]?.toString() ?? ""} ${gymPlan["billing_cycle"]?.toString() ?? ""}".trim();
-        final price   = "₹${plan["custom_price"]?.toString() ?? "0"}";
-
+      itemCount: _activePlans.length + 1,
+      itemBuilder: (_, i) {
+        if (i == 0) return _buildHeroCard(_activePlans.length, "My Active");
+        final plan = _activePlans[i - 1];
         return _PlanCard(
-          title:      title,
-          duration:   dur,
-          price:      price,
-          isPriceSet: true,
-          buttonText: "Edit Plan",
-          icon:       _iconFor(title),
-          isPopular:  false,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AddPackageScreen(
-                  planId:   (plan["id"] as num?)?.toInt() ?? 0,
-                  planName: title,
-                  isEdit:   true,
-                  price:    plan["custom_price"],
-                ),
-              ),
-            ).then((_) => _loadData());
-          },
+          plan:       plan,
+          icon:       _iconFor(plan.planName),
+          buttonText: "Edit",
+          buttonColor: kGold,
+          onTap:      () => _openAddPlanSheet(existing: plan),
+          trailing: IconButton(
+            icon: const Icon(Icons.remove_circle_outline_rounded,
+                color: Colors.redAccent, size: 20),
+            tooltip: "Remove from My Plans",
+            onPressed: () => _deactivatePlan(plan),
+          ),
         );
       },
     );
   }
 
-  // ── HERO CARD ─────────────────────────────────────────
+  // ── ALL PLANS TAB ──────────────────────────────────
+  Widget _buildAllPlansTab() {
+    if (_allPlans.isEmpty) {
+      return _emptyState("No plans created",
+          sub: "Tap '+ New Plan' to create your first package");
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: _allPlans.length + 1,
+      itemBuilder: (_, i) {
+        if (i == 0) return _buildHeroCard(_allPlans.length, "All");
+        final plan    = _allPlans[i - 1];
+        final active  = _isActive(plan);
+        return _PlanCard(
+          plan:        plan,
+          icon:        _iconFor(plan.planName),
+          buttonText:  active ? "Added ✓" : "Add Plan",
+          buttonColor: active ? kSurface2 : kGold,
+          onTap:       active ? null : () => _activatePlan(plan),
+          trailing: PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, color: kText2, size: 20),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            onSelected: (v) {
+              if (v == "edit")   _openAddPlanSheet(existing: plan);
+              if (v == "delete") _deletePlan(plan);
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: "edit",
+                  child: Text("Edit Plan")),
+              const PopupMenuItem(value: "delete",
+                  child: Text("Delete", style: TextStyle(color: Colors.redAccent))),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ── HERO CARD ──────────────────────────────────────
   Widget _buildHeroCard(int count, String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -309,49 +309,31 @@ class _PackagesScreenState extends State<PackagesScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "${label.toUpperCase()} PLANS",
-                    style: const TextStyle(
-                      color: kGoldDeep,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
-                  ),
+                  Text("${label.toUpperCase()} PLANS",
+                      style: const TextStyle(
+                          color: kGoldDeep, fontSize: 10,
+                          fontWeight: FontWeight.w700, letterSpacing: 1)),
                   const SizedBox(height: 6),
-                  Text(
-                    "$count Package${count == 1 ? "" : "s"}",
-                    style: const TextStyle(
-                      color: kText1,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  Text("$count Package${count == 1 ? '' : 's'}",
+                      style: const TextStyle(
+                          color: kText1, fontSize: 24,
+                          fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                   const SizedBox(height: 4),
-                  const Text(
-                    "Tap a plan to configure",
-                    style: TextStyle(
-                      color: kGoldDeep,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  const Text("Tap a plan to manage",
+                      style: TextStyle(
+                          color: kGoldDeep, fontSize: 11,
+                          fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
             Container(
-              width: 52,
-              height: 52,
+              width: 52, height: 52,
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
-                Icons.workspace_premium_outlined,
-                color: kText1,
-                size: 26,
-              ),
+              child: const Icon(Icons.workspace_premium_outlined,
+                  color: kText1, size: 26),
             ),
           ],
         ),
@@ -359,47 +341,52 @@ class _PackagesScreenState extends State<PackagesScreen>
     );
   }
 
-  // ── EMPTY STATE ──────────────────────────────────────
-  Widget _emptyState(String msg) {
+  // ── EMPTY STATE ────────────────────────────────────
+  Widget _emptyState(String msg, {String sub = ""}) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 64, height: 64,
             decoration: BoxDecoration(
-              color: kGoldLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(Icons.inbox_outlined,
-                color: kGoldDark, size: 30),
+                color: kGoldLight, borderRadius: BorderRadius.circular(20)),
+            child: const Icon(Icons.inbox_outlined, color: kGoldDark, size: 30),
           ),
           const SizedBox(height: 14),
           Text(msg,
-              style: const TextStyle(color: kText2, fontSize: 13)),
+              style: const TextStyle(color: kText1, fontSize: 14,
+                  fontWeight: FontWeight.w700)),
+          if (sub.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(sub,
+                style: const TextStyle(color: kText2, fontSize: 12),
+                textAlign: TextAlign.center),
+          ],
         ],
       ),
     );
   }
 }
 
-// ── PLAN CARD ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  PLAN CARD
+// ═══════════════════════════════════════════════════════
 class _PlanCard extends StatelessWidget {
-  final String     title, duration, price, buttonText;
-  final bool       isPriceSet, isPopular;
-  final IconData   icon;
-  final VoidCallback onTap;
+  final GymPlan     plan;
+  final IconData    icon;
+  final String      buttonText;
+  final Color       buttonColor;
+  final VoidCallback? onTap;
+  final Widget?     trailing;
 
   const _PlanCard({
-    required this.title,
-    required this.duration,
-    required this.price,
-    required this.isPriceSet,
-    required this.buttonText,
+    required this.plan,
     required this.icon,
-    required this.isPopular,
-    required this.onTap,
+    required this.buttonText,
+    required this.buttonColor,
+    this.onTap,
+    this.trailing,
   });
 
   @override
@@ -410,54 +397,39 @@ class _PlanCard extends StatelessWidget {
         color: kSurface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isPopular ? kGoldBorder : kBorder,
-          width: isPopular ? 1.5 : 1,
+          color: plan.isPopular ? kGoldBorder : kBorder,
+          width: plan.isPopular ? 1.5 : 1,
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Top accent bar
-          Container(
-            height: 3,
-            color: isPopular ? kGold : kText1,
-          ),
-
+          Container(height: 3, color: plan.isPopular ? kGold : kText1),
           Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // Header row
                 Row(
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 44, height: 44,
                       decoration: BoxDecoration(
-                        color: isPopular ? kGoldLight : kSurface2,
+                        color: plan.isPopular ? kGoldLight : kSurface2,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(
-                        icon,
-                        color: isPopular ? kGoldDark : kText2,
-                        size: 20,
-                      ),
+                      child: Icon(icon,
+                          color: plan.isPopular ? kGoldDark : kText2, size: 20),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          color: kText1,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
+                      child: Text(plan.planName,
+                          style: const TextStyle(
+                              color: kText1, fontSize: 15,
+                              fontWeight: FontWeight.w800, letterSpacing: -0.2)),
                     ),
-                    if (isPopular)
+                    if (plan.isPopular)
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
@@ -466,16 +438,12 @@ class _PlanCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: kGoldBorder),
                         ),
-                        child: const Text(
-                          "POPULAR",
-                          style: TextStyle(
-                            color: kGoldDark,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        child: const Text("POPULAR",
+                            style: TextStyle(
+                                color: kGoldDark, fontSize: 9,
+                                fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                       ),
+                    if (trailing != null) trailing!,
                   ],
                 ),
 
@@ -483,43 +451,28 @@ class _PlanCard extends StatelessWidget {
 
                 // Duration chip
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     color: kGoldLight,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: kGoldBorder),
                   ),
-                  child: Text(
-                    duration,
-                    style: const TextStyle(
-                      color: kGoldDark,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: Text(plan.durationLabel,
+                      style: const TextStyle(
+                          color: kGoldDark, fontSize: 11,
+                          fontWeight: FontWeight.w700)),
                 ),
 
                 const SizedBox(height: 14),
 
                 // Price
-                Text(
-                  price,
-                  style: const TextStyle(
-                    color: kText1,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1,
-                  ),
-                ),
+                Text(plan.priceLabel,
+                    style: const TextStyle(
+                        color: kText1, fontSize: 28,
+                        fontWeight: FontWeight.w900, letterSpacing: -1)),
                 const SizedBox(height: 3),
-                Text(
-                  isPriceSet ? "per billing cycle" : "custom pricing",
-                  style: const TextStyle(
-                    color: kText2,
-                    fontSize: 11,
-                  ),
-                ),
+                const Text("per billing cycle",
+                    style: TextStyle(color: kText2, fontSize: 11)),
 
                 const SizedBox(height: 16),
 
@@ -530,23 +483,21 @@ class _PlanCard extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      color: isPopular ? kGold : kSurface,
+                      color: buttonColor,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isPopular ? kGold : kGoldBorder,
+                        color: buttonColor == kGold ? kGold : kGoldBorder,
                         width: 1.5,
                       ),
                     ),
                     child: Center(
-                      child: Text(
-                        buttonText,
-                        style: TextStyle(
-                          color: isPopular ? kGoldDeep : kGoldDark,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
+                      child: Text(buttonText,
+                          style: TextStyle(
+                            color: buttonColor == kGold ? kGoldDeep : kText2,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          )),
                     ),
                   ),
                 ),
@@ -557,4 +508,317 @@ class _PlanCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADD / EDIT PLAN BOTTOM SHEET
+// ═══════════════════════════════════════════════════════
+class _AddPlanSheet extends StatefulWidget {
+  final GymPlan?               existing;
+  final void Function(GymPlan) onSave;
+
+  const _AddPlanSheet({this.existing, required this.onSave});
+
+  @override
+  State<_AddPlanSheet> createState() => _AddPlanSheetState();
+}
+
+class _AddPlanSheetState extends State<_AddPlanSheet> {
+  final _formKey      = GlobalKey<FormState>();
+  final _nameCtrl     = TextEditingController();
+  final _priceCtrl    = TextEditingController();
+  final _durationCtrl = TextEditingController();
+
+  String _billingCycle = "Month";
+  bool   _isPopular    = false;
+
+  static const _cycles = ["Day", "Week", "Month", "Months", "Year"];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existing != null) {
+      final p = widget.existing!;
+      _nameCtrl.text     = p.planName;
+      _priceCtrl.text    = p.price.toStringAsFixed(0);
+      _durationCtrl.text = p.duration.toString();
+      _billingCycle      = p.billingCycle;
+      _isPopular         = p.isPopular;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _priceCtrl.dispose();
+    _durationCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+    final plan = GymPlan(
+      id:           widget.existing?.id ?? DateTime.now().millisecondsSinceEpoch,
+      planName:     _nameCtrl.text.trim(),
+      duration:     int.parse(_durationCtrl.text.trim()),
+      billingCycle: _billingCycle,
+      price:        double.parse(_priceCtrl.text.trim()),
+      isPopular:    _isPopular,
+    );
+    widget.onSave(plan);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEdit   = widget.existing != null;
+    final viewInsets = MediaQuery.of(context).viewInsets;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + viewInsets.bottom),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                    color: kBorder,
+                    borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+
+            Text(isEdit ? "Edit Plan" : "Add New Plan",
+                style: const TextStyle(
+                    color: kText1, fontSize: 18,
+                    fontWeight: FontWeight.w900, letterSpacing: -0.3)),
+            const SizedBox(height: 4),
+            Text(isEdit
+                ? "Update the details for this package"
+                : "Create a custom gym package",
+                style: const TextStyle(color: kText2, fontSize: 12)),
+
+            const SizedBox(height: 24),
+
+            // Plan name
+            _label("Plan Name"),
+            _input(
+              controller: _nameCtrl,
+              hint:       "e.g. Monthly Basic",
+              validator:  (v) => (v?.trim().isEmpty ?? true) ? "Enter a name" : null,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Duration row
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label("Duration"),
+                      _input(
+                        controller: _durationCtrl,
+                        hint:       "e.g. 3",
+                        keyboard:   TextInputType.number,
+                        validator:  (v) {
+                          if (v?.trim().isEmpty ?? true) return "Required";
+                          if (int.tryParse(v!.trim()) == null) return "Number only";
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label("Billing Cycle"),
+                      Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: kSurface2,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: kBorder),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value:   _billingCycle,
+                            items:   _cycles.map((c) =>
+                                DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (v) =>
+                                setState(() => _billingCycle = v ?? _billingCycle),
+                            style: const TextStyle(
+                                color: kText1, fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                            dropdownColor: kSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Price
+            _label("Price (₹)"),
+            _input(
+              controller: _priceCtrl,
+              hint:       "e.g. 1499",
+              keyboard:   TextInputType.number,
+              prefix:     const Padding(
+                padding: EdgeInsets.only(left: 14, right: 8),
+                child: Text("₹",
+                    style: TextStyle(
+                        color: kGoldDark, fontSize: 16,
+                        fontWeight: FontWeight.w800)),
+              ),
+              validator: (v) {
+                if (v?.trim().isEmpty ?? true) return "Enter a price";
+                if (double.tryParse(v!.trim()) == null) return "Invalid number";
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Popular toggle
+            GestureDetector(
+              onTap: () => setState(() => _isPopular = !_isPopular),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: _isPopular ? kGoldLight : kSurface2,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: _isPopular ? kGoldBorder : kBorder),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _isPopular
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      color: _isPopular ? kGoldDark : kText2, size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Mark as Popular",
+                              style: TextStyle(
+                                  color: kText1, fontSize: 13,
+                                  fontWeight: FontWeight.w700)),
+                          Text("Shows a 'POPULAR' badge on the card",
+                              style: TextStyle(color: kText2, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value:             _isPopular,
+                      onChanged:         (v) => setState(() => _isPopular = v),
+                      activeColor:       kGoldDark,
+                      activeTrackColor:  kGold,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Save button
+            GestureDetector(
+              onTap: _save,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: kGold,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text(isEdit ? "Save Changes" : "Add Plan",
+                      style: const TextStyle(
+                          color: kGoldDeep, fontSize: 15,
+                          fontWeight: FontWeight.w900, letterSpacing: 0.2)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Small helpers ───────────────────────────────────
+  Widget _label(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(text,
+        style: const TextStyle(color: kText1, fontSize: 12,
+            fontWeight: FontWeight.w700)),
+  );
+
+  Widget _input({
+    required TextEditingController controller,
+    required String                 hint,
+    TextInputType   keyboard   = TextInputType.text,
+    Widget?         prefix,
+    String? Function(String?)? validator,
+  }) =>
+      TextFormField(
+        controller:  controller,
+        keyboardType: keyboard,
+        validator:   validator,
+        style: const TextStyle(
+            color: kText1, fontSize: 14, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          hintText:       hint,
+          hintStyle:      const TextStyle(color: kText2, fontSize: 13),
+          prefixIcon:     prefix,
+          filled:         true,
+          fillColor:      kSurface2,
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:   const BorderSide(color: kBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:   const BorderSide(color: kBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:   const BorderSide(color: kGold, width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:   const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:   const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+        ),
+      );
 }

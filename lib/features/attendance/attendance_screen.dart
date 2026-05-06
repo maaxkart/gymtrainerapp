@@ -198,23 +198,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: kSurface2,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: kBorder),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 15,
-                    color: kText1,
-                  ),
-                ),
-              ),
+
               const SizedBox(width: 14),
               const Expanded(
                 child: Text(

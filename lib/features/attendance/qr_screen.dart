@@ -251,23 +251,7 @@ class _QrScreenState extends State<QrScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.fromLTRB(20, 58, 20, 16),
       child: Row(
         children: [
-          _TapScaleWidget(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: kSurface2,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: kBorder, width: 1.5),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 14,
-                color: kText1,
-              ),
-            ),
-          ),
+
           const SizedBox(width: 14),
           Expanded(
             child: Column(
